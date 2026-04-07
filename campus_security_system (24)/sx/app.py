@@ -61,6 +61,7 @@ DB_PATH       = os.path.join(os.path.dirname(__file__), 'database', 'database.db
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 # ── Logging ────────────────────────────────────────────────
 logging.basicConfig(
@@ -440,6 +441,13 @@ def init_db():
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )''')
     print('✅ Database ready.')
+
+
+# ── Initialise the database on startup ─────────────────────
+# Using an explicit app context ensures init_db() runs whether the app
+# is started directly (`python app.py`) or via a WSGI/process manager.
+with app.app_context():
+    init_db()
 
 
 # ═══════════════════════════════════════════════════════════
@@ -2028,9 +2036,6 @@ def special_request():
 import os
 
 if __name__ == '__main__':
-    print('📦 Initialising database...')
-    init_db()
-
     debug_mode = os.environ.get('DEBUG', 'true').lower() == 'true'
 
     socketio.run(
